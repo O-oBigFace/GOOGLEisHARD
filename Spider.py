@@ -30,7 +30,7 @@ class Spider(object):
         }
 
     def make_soup(self, payloads):
-        print(self.url, payloads, self.ip)
+        # print(self.url, payloads, self.ip)
         r = requests.get(
             self.url,
             params=payloads,
