@@ -13,11 +13,11 @@ logger = Logger.get_logger()
 
 class Spider(object):
     def __init__(self):
-        # self.ip = get_ip()
-        self.ip = {
-            'http': 'socks5://127.0.0.1:1086',
-            'https': 'socks5://127.0.0.1:1086'
-        }
+        self.ip = get_ip()
+        # self.ip = {
+        #     'http': 'socks5://127.0.0.1:1086',
+        #     'https': 'socks5://127.0.0.1:1086'
+        # }
         self.url = 'https://www.google.com/search'
         self.monitor = 0
 
