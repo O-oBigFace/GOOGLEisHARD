@@ -40,13 +40,13 @@ def spider(begin, end):
 
 
 if __name__ == '__main__':
-    print(affiliation_list)
-    begin = int(sys.argv[1])
-    end = int(sys.argv[2])
-    num_of_process = int(sys.argv[3])
-    # begin = 1
-    # end = 100
-    # num_of_process = 3
+    # print(affiliation_list)
+    # begin = int(sys.argv[1])
+    # end = int(sys.argv[2])
+    # num_of_process = int(sys.argv[3])
+    begin = 1
+    end = 10
+    num_of_process = 3
 
     quarter = round((end - begin) / num_of_process)
 

@@ -7,8 +7,7 @@ import warnings
 import Logger
 import re
 import logging
-import urllib3
-import traceback
+
 
 warnings.filterwarnings("ignore")
 logger = Logger.get_logger(logging.DEBUG)
@@ -30,33 +29,34 @@ class Spider(object):
             # "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
         }
 
-    # def make_soup(self, payloads):
-    #     r = requests.get(
-    #         self.url,
-    #         params=payloads,
-    #         # headers=self.get_header(),
-    #         proxies=self.ip,
-    #         verify=False,
-    #     )
-    #     r.encoding = "utf-8"
-    #     if r.status_code == 200:
-    #         return BeautifulSoup(r.text)
-    #     elif r.status_code == 503:
-    #         raise Exception('Error: {0} {1}'.format(r.status_code, r.reason))
-    #     else:
-    #         raise Exception('Error: {0} {1}'.format(r.status_code, r.reason))
-
     def make_soup(self, payloads):
-        http = urllib3.ProxyManager(self.ip)
-        r = http.request("GET",
-                         "https://www.google.com/search",
-                         fields=payloads,
-
-                         )
-        if r.status == 200:
-            return r.data.decode("utf-8")
+        print(self.url, payloads, self.ip)
+        r = requests.get(
+            self.url,
+            params=payloads,
+            # headers=self.get_header(),
+            proxies=self.ip,
+            # verify=False,
+        )
+        logger.info(r.url)
+        r.encoding = "utf-8"
+        if r.status_code == 200:
+            return BeautifulSoup(r.text)
+        elif r.status_code == 503:
+            raise Exception('Error: {0} {1}'.format(r.status_code, r.reason))
         else:
-            raise Exception('Error: {0}'.format(r.status))
+            raise Exception('Error: {0} {1}'.format(r.status_code, r.reason))
+
+    # def make_soup(self, payloads):
+    #     http = urllib3.ProxyManager(self.ip)
+    #     r = http.request("GET",
+    #                      "https://www.google.com/search",
+    #                      fields=payloads,
+    #                      )
+    #     if r.status == 200:
+    #         return r.data.decode("utf-8")
+    #     else:
+    #         raise Exception('Error: {0}'.format(r.status))
 
     def payloader(self, tp, content):
         identifier = "q"
@@ -120,7 +120,6 @@ class Spider(object):
 
         except Exception as e:
             logger.error("%d | %s" % (self.monitor, str(e)))
-            traceback.print_exc()
         finally:
             return "ERROR", "ERROR"
 
