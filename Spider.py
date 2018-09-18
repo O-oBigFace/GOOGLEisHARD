@@ -6,35 +6,37 @@ import random
 import warnings
 import Logger
 import re
+import logging
 
 warnings.filterwarnings("ignore")
-logger = Logger.get_logger()
+logger = Logger.get_logger(logging.INFO)
 
 
 class Spider(object):
     def __init__(self):
         self.ip = get_ip()
         # self.ip = {
-        #     'http': 'socks5://127.0.0.1:1086',
-        #     'https': 'socks5://127.0.0.1:1086'
+        #     'http': 'socks5://127.0.0.1:1080',
+        #     'https': 'socks5://127.0.0.1:1080'
         # }
         self.url = 'https://www.google.com/search'
         self.monitor = 0
 
     def get_header(self):
         return {
-            'accept': '*/*',
-            'accept-encoding': 'gzip, deflate, br',
-            'accept-language': 'en-us;q=0.5,en;q=0.3',
-            'connection': 'keep-alive',
-            'user-agent': random.choice(agents)
-            }
+            # "accept": "*/*",
+            # "accept-language": "zh-CN,zh;q=0.9,en;q=0.8",
+            # "accept-encoding": "gzip, deflate, br",
+            # "refer": "https://www.google.com/",
+            # "x-client-data": "CIi2yQEIpbbJAQjEtskBCKmdygEI153KAQjZncoBCKOfygEIqKPKARj5pcoB",
+            # "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
+        }
 
     def make_soup(self, payloads):
         r = requests.get(
             self.url,
             params=payloads,
-            headers=self.get_header(),
+            # headers=self.get_header(),
             proxies=self.ip,
             verify=False,
         )
