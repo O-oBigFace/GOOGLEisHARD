@@ -36,7 +36,7 @@ class Spider(object):
             params=payloads,
             # headers=self.get_header(),
             proxies=self.ip,
-            # verify=False,
+            verify=False,
         )
         logger.info(r.url)
         r.encoding = "utf-8"
@@ -62,7 +62,7 @@ class Spider(object):
         identifier = "q"
         if tp in ["address"]:
             return {
-                identifier: "Where is %s located in?" % content.split(';')[0],
+                identifier: "Where is %s located?" % content.split(';')[0],
             }
         if tp in ["email", "phone", "email and phone"]:
             return {
