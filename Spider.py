@@ -7,19 +7,16 @@ import warnings
 import Logger
 import re
 import logging
+import urllib3
 
 warnings.filterwarnings("ignore")
-logger = Logger.get_logger(logging.INFO)
+logger = Logger.get_logger(logging.DEBUG)
 
 
 class Spider(object):
     def __init__(self):
         self.ip = get_ip()
-        # self.ip = {
-        #     'http': 'socks5://127.0.0.1:1080',
-        #     'https': 'socks5://127.0.0.1:1080'
-        # }
-        self.url = 'https://www.google.com/search'
+        self.url = 'https://google.com/search'
         self.monitor = 0
 
     def get_header(self):
@@ -32,21 +29,33 @@ class Spider(object):
             # "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
         }
 
+    # def make_soup(self, payloads):
+    #     r = requests.get(
+    #         self.url,
+    #         params=payloads,
+    #         # headers=self.get_header(),
+    #         proxies=self.ip,
+    #         verify=False,
+    #     )
+    #     r.encoding = "utf-8"
+    #     if r.status_code == 200:
+    #         return BeautifulSoup(r.text)
+    #     elif r.status_code == 503:
+    #         raise Exception('Error: {0} {1}'.format(r.status_code, r.reason))
+    #     else:
+    #         raise Exception('Error: {0} {1}'.format(r.status_code, r.reason))
+
     def make_soup(self, payloads):
-        r = requests.get(
-            self.url,
-            params=payloads,
-            # headers=self.get_header(),
-            proxies=self.ip,
-            verify=False,
-        )
-        r.encoding = "utf-8"
-        if r.status_code == 200:
-            return BeautifulSoup(r.text)
-        elif r.status_code == 503:
-            raise Exception('Error: {0} {1}'.format(r.status_code, r.reason))
+        http = urllib3.ProxyManager(self.ip)
+        r = http.request("GET",
+                         "https://www.google.com/search",
+                         fields=payloads,
+
+                         )
+        if r.status == 200:
+            return r.data.decode("utf-8")
         else:
-            raise Exception('Error: {0} {1}'.format(r.status_code, r.reason))
+            raise Exception('Error: {0}'.format(r.status))
 
     def payloader(self, tp, content):
         identifier = "q"

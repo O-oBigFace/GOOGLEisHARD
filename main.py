@@ -52,9 +52,8 @@ if __name__ == '__main__':
 
     args = [(begin + i * quarter, begin + (1+i) * quarter) for i in range(num_of_process-1)]
     args.append((begin + (num_of_process - 1) * quarter, end))
-    print(args)
 
     for a in args:
         p = Process(target=spider, args=a)
         p.start()
-        time.sleep(5)
+        # time.sleep(5)
