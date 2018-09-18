@@ -8,6 +8,7 @@ import Logger
 import re
 import logging
 import urllib3
+import traceback
 
 warnings.filterwarnings("ignore")
 logger = Logger.get_logger(logging.DEBUG)
@@ -119,6 +120,7 @@ class Spider(object):
 
         except Exception as e:
             logger.error("%d | %s" % (self.monitor, str(e)))
+            traceback.print_exc()
         finally:
             return "ERROR", "ERROR"
 
