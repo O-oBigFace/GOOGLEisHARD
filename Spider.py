@@ -38,7 +38,7 @@ def _get_page(pagerequest):
     if resp.status_code == 200:
         return resp.text
     else:
-        raise Exception('Error: {0} {1}'.format(r.status_code, r.reason))
+        raise Exception('Error: {0} {1}'.format(resp.status_code, resp.reason))
 
 
 def _make_soup(pagerequest):
@@ -88,7 +88,7 @@ class Spider(object):
 
     def get_country(self, affiliation):
         try:
-            question = "What country is % in?" % affiliation
+            question = "What country is %s in?" % affiliation
             url_country = _SEARCH.format(requests.utils.quote(question))
             soup = _make_soup(_HOST + url_country)
             tag_results = soup.select("div[class='Z0LcW']")
@@ -100,7 +100,7 @@ class Spider(object):
 
     def get_address(self, affiliation):
         try:
-            question = "Where is % located?" % affiliation
+            question = "Where is %s located?" % affiliation
             url_address = _SEARCH.format(requests.utils.quote(question))
             soup = _make_soup(_HOST + url_address)
             tag_results = soup.select("div[class='Z0LcW']")
