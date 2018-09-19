@@ -42,7 +42,7 @@ _SESSION = requests.Session()
 _PAGESIZE = 100
 
 
-def _get_page(pagerequest, proxy):
+def _get_page(pagerequest):
     """Return the data for a page on scholar.google.com"""
     _HEADERS['User-Agent'] = random.choice(agents)
     # Note that we include a sleep to avoid overloading the scholar server
@@ -50,10 +50,15 @@ def _get_page(pagerequest, proxy):
 
     proxy_host = "proxy.crawlera.com"
     proxy_port = "8010"
-    proxy_auth = "0b3d10012b61488aa0667b27c829d5de:"
+    proxy_auth = "c3dad299d5bb46b785fda38e8322c5e4:"
     proxies = {"https": "https://{}@{}:{}/".format(proxy_auth, proxy_host, proxy_port),
                "http": "http://{}@{}:{}/".format(proxy_auth, proxy_host, proxy_port)}
-    resp = _SESSION.get(pagerequest, headers=_HEADERS, cookies=_COOKIES, proxies=proxies, verify=False)
+    resp = _SESSION.get(pagerequest,
+                        headers=_HEADERS,
+                        cookies=_COOKIES,
+                        # proxies=proxies,
+                        proxies=_PROXIES,
+                        verify=False)
 
     if resp.status_code == 200:
         return resp.text
@@ -64,14 +69,14 @@ def _get_page(pagerequest, proxy):
         raise Exception('Error: {0} {1}'.format(resp.status_code, resp.reason))
 
 
-def _get_soup(pagerequest, proxy):
+def _get_soup(pagerequest):
     """Return the BeautifulSoup for a page on scholar.google.com"""
-    html = _get_page(pagerequest, proxy)
+    html = _get_page(pagerequest)
 
     return BeautifulSoup(html, 'html.parser')
 
 
-def _search_citation_soup(soup, proxy):
+def _search_citation_soup(soup):
     """Generator that returns Author objects from the author search page"""
     while True:
         for row in soup.find_all('div', 'gsc_1usr'):
@@ -80,7 +85,7 @@ def _search_citation_soup(soup, proxy):
         if next_button and 'disabled' not in next_button.attrs:
             url = next_button['onclick'][17:-1]
             url = codecs.getdecoder("unicode_escape")(url)[0]
-            soup = _get_soup(_HOST+url, proxy)
+            soup = _get_soup(_HOST+url)
         else:
             break
 
@@ -114,11 +119,11 @@ class Author(object):
                 self.citedby = 0
         self._filled = False
 
-    def fill(self, proxy):
+    def fill(self):
         """Populate the Author with information from their profile"""
         url_citations = _CITATIONAUTH.format(self.id)
         url = '{0}&pagesize={1}'.format(url_citations, _PAGESIZE)
-        soup = _get_soup(_HOST+url, proxy)
+        soup = _get_soup(_HOST+url)
         self.name = soup.find('div', id='gsc_prf_in').text
         self.affiliation = soup.find('div', class_='gsc_prf_il').text
         # self.interests = [i.text.strip() for i in soup.find_all('a', class_='gsc_prf_inta')]
@@ -145,8 +150,8 @@ class Author(object):
         return pprint.pformat(self.__dict__)
 
 
-def search_author(name, proxy):
+def search_author(name):
     """Search by author name and return a generator of Author objects"""
     url = _AUTHSEARCH.format(requests.utils.quote(name))
-    soup = _get_soup(_HOST+url, proxy)
-    return _search_citation_soup(soup, proxy)
+    soup = _get_soup(_HOST+url)
+    return _search_citation_soup(soup)

@@ -1,7 +1,7 @@
 import os
 import pandas
 import time
-from Spider import Spider,logger
+from Spider import Spider, logger
 import json
 import sys
 from multiprocessing import Process
@@ -11,7 +11,7 @@ path_dir_result = os.path.join(os.getcwd(), "result_file")
 mat = pandas.read_csv(path_tag_csv)
 mat = mat.fillna(value="")
 affiliation_list = mat.iloc[:, 1].values.tolist()
-MAXSIZE = 5660
+MAXSIZE = 5660 + 1
 
 
 def save_file(filename, list):
@@ -40,13 +40,12 @@ def spider(begin, end):
 
 
 if __name__ == '__main__':
-    # print(affiliation_list)
-    # begin = int(sys.argv[1])
-    # end = int(sys.argv[2])
-    # num_of_process = int(sys.argv[3])
-    begin = 1
-    end = 10
-    num_of_process = 3
+    begin = int(sys.argv[1])
+    end = int(sys.argv[2])
+    num_of_process = int(sys.argv[3])
+    # begin = 1
+    # end = 10
+    # num_of_process = 3
 
     quarter = round((end - begin) / num_of_process)
 
