@@ -34,9 +34,9 @@ def spider(begin, end):
         address = sp.get_address(affiliation_list[i])
         item = (i, country, address)
         result_list.append(item)
+        logger.info("%d | %s | %s" % item)
         if i % 10 == 0 or i == end - 1:
             save_file(path, result_list)
-            logger.info("%d | %s | %s" % item)
 
 
 if __name__ == '__main__':

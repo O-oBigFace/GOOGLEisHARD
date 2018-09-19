@@ -11,7 +11,7 @@ import hashlib
 
 
 warnings.filterwarnings("ignore")
-logger = Logger.get_logger(logging.DEBUG)
+logger = Logger.get_logger(logging.INFO)
 
 _GOOGLEID = hashlib.md5(str(random.random()).encode("utf-8")).hexdigest()[:16]
 _COOKIES = {"GSP": "ID={0}:CF=4".format(_GOOGLEID)}
@@ -31,8 +31,8 @@ def _get_page(pagerequest):
         pagerequest,
         headers=_HEADERS,
         cookies=_COOKIES,
-        proxies=_PROXIES,
-        verify=False,
+        # proxies=_PROXIES,
+        # verify=False,
     )
     resp.encoding = "utf-8"
     if resp.status_code == 200:
