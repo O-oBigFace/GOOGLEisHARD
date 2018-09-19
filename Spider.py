@@ -7,90 +7,53 @@ import warnings
 import Logger
 import re
 import logging
+import hashlib
 
 
 warnings.filterwarnings("ignore")
 logger = Logger.get_logger(logging.DEBUG)
 
+_GOOGLEID = hashlib.md5(str(random.random()).encode("utf-8")).hexdigest()[:16]
+_COOKIES = {"GSP": "ID={0}:CF=4".format(_GOOGLEID)}
+_HEADERS = {
+    "accept-language": "en-US, en",
+    'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/41.0.2272.76 Chrome/41.0.2272.76 Safari/537.36',
+    'accept': 'text/html,application/xhtml+xml,application/xml'
+}
+_HOST = "https://google.com"
+_SEARCH = "/search?num=20&q={0}"
+_SESSION = requests.Session()
+_PROXIES = get_ip()
+
+
+def _get_page(pagerequest):
+    resp = _SESSION.get(
+        pagerequest,
+        headers=_HEADERS,
+        cookies=_COOKIES,
+        proxies=_PROXIES,
+        verify=False,
+    )
+    resp.encoding = "utf-8"
+    if resp.status_code == 200:
+        return resp.text
+    else:
+        raise Exception('Error: {0} {1}'.format(r.status_code, r.reason))
+
+
+def _make_soup(pagerequest):
+    html = _get_page(pagerequest)
+    return BeautifulSoup(html, "lxml")
+
 
 class Spider(object):
     def __init__(self):
-        self.ip = get_ip()
-        self.url = 'https://google.com/search'
         self.monitor = 0
-
-    def get_header(self):
-        return {
-            # "accept": "*/*",
-            # "accept-language": "zh-CN,zh;q=0.9,en;q=0.8",
-            # "accept-encoding": "gzip, deflate, br",
-            # "refer": "https://www.google.com/",
-            # "x-client-data": "CIi2yQEIpbbJAQjEtskBCKmdygEI153KAQjZncoBCKOfygEIqKPKARj5pcoB",
-            # "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36"
-        }
-
-    def make_soup(self, payloads):
-        # print(self.url, payloads, self.ip)
-        r = requests.get(
-            self.url,
-            params=payloads,
-            # headers=self.get_header(),
-            proxies=self.ip,
-            verify=False,
-        )
-        logger.info(r.url)
-        r.encoding = "utf-8"
-        if r.status_code == 200:
-            return BeautifulSoup(r.text)
-        elif r.status_code == 503:
-            raise Exception('Error: {0} {1}'.format(r.status_code, r.reason))
-        else:
-            raise Exception('Error: {0} {1}'.format(r.status_code, r.reason))
-
-    # def make_soup(self, payloads):
-    #     http = urllib3.ProxyManager(self.ip)
-    #     r = http.request("GET",
-    #                      "https://www.google.com/search",
-    #                      fields=payloads,
-    #                      )
-    #     if r.status == 200:
-    #         return r.data.decode("utf-8")
-    #     else:
-    #         raise Exception('Error: {0}'.format(r.status))
-
-    def payloader(self, tp, content):
-        identifier = "q"
-        if tp in ["address"]:
-            return {
-                identifier: "Where is %s located?" % content.split(';')[0],
-            }
-        if tp in ["email", "phone", "email and phone"]:
-            return {
-                identifier: "%s and email and phone" % content,
-            }
-        if tp in ["country"]:
-            return {
-                identifier: "What country is %s in?" % content.split(';')[0],
-            }
-        if tp in ["position"]:
-            return {
-                "q": "%s and (professor or researcher or scientist)" % content,
-            }
-
-    # Search the address by affiliation.
-    def get_address(self, affiliation):
-        try:
-            soup = self.make_soup(payloads=self.payloader("address", affiliation))
-            tag_results = soup.select("div[class='Z0LcW']")
-            return tag_results[0].getText() if len(tag_results) > 0 else ''
-        except Exception as e:
-            logger.error("%d | %s" % (self.monitor, str(e)))
-        finally:
-            return "ERROR"
 
     def get_email_and_phone(self, keywords):
         try:
-            soup = self.make_soup(payloads=self.payloader("email", keywords))
+            url_ep = _SEARCH.format(requests.utils.quote(keywords))
+            soup = _make_soup(pagerequest=_HOST + url_ep)
             tag_results = soup.select("span[class='st']")
             results = {str(tr)
                            .replace(r"<em>", '')
@@ -125,7 +88,21 @@ class Spider(object):
 
     def get_country(self, affiliation):
         try:
-            soup = self.make_soup(payloads=self.payloader("country", affiliation))
+            question = "What country is % in?" % affiliation
+            url_country = _SEARCH.format(requests.utils.quote(question))
+            soup = _make_soup(_HOST + url_country)
+            tag_results = soup.select("div[class='Z0LcW']")
+            return tag_results[0].getText() if len(tag_results) > 0 else ''
+        except Exception as e:
+            logger.error("%d | %s" % (self.monitor, str(e)))
+        finally:
+            return "ERROR"
+
+    def get_address(self, affiliation):
+        try:
+            question = "Where is % located?" % affiliation
+            url_address = _SEARCH.format(requests.utils.quote(question))
+            soup = _make_soup(_HOST + url_address)
             tag_results = soup.select("div[class='Z0LcW']")
             return tag_results[0].getText() if len(tag_results) > 0 else ''
         except Exception as e:
@@ -135,7 +112,8 @@ class Spider(object):
 
     def get_position(self, keywords):
         try:
-            soup = self.make_soup(payloads=self.payloader("position", keywords))
+            url_position = _SEARCH.format(requests.utils.quote(keywords))
+            soup = _make_soup(_HOST + url_position)
             tag_results = soup.select("span[class='st']")
             results = {str(tr)
                            .replace(r"<em>", '')
